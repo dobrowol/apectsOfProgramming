@@ -1,0 +1,10 @@
+#pragma once
+#include <iostream>
+
+aspect World {
+
+  advice execution("bool foo()") : after() {
+    std::cout << "ASPECT" << std::endl;
+  }
+
+};
