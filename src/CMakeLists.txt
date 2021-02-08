@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
 ############## Aspect compiler ##############
 # Find and check ACXX compiler
+message("Main DUPA")
 if(NOT CMAKE_ACXX_COMPILER_WORKS)
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../buildsystem/acxx")
     enable_language(ACXX)
@@ -21,7 +22,22 @@ if(NOT CMAKE_ACXX_COMPILER_WORKS)
 endif()
 
 project(DracoPlatformMade LANGUAGES ACXX CXX C)
-ADD_DEFINITIONS_ACXX(-I $ENV{PKG_CONFIG_SYSROOT_DIR}/usr/include/c++/${CMAKE_CXX_COMPILER_VERSION} --c_compiler x86_64-poky-linux-g++ --config ~/accconfig.txt --real-instances --no_warn_macro --keep_woven -k --no_line -p${CMAKE_CURRENT_SOURCE_DIR})
+#flags for cross-compiler 
+message("DUPA $ENV{OECORE_NATIVE_SYSROOTR}/usr/include/")
+
+ADD_DEFINITIONS_ACXX(
+-I "$ENV{SDKTARGETSYSROOT}/usr/include/c++/7.3.0"
+-I "$ENV{SDKTARGETSYSROOT}/usr/include/"
+-I "/var/fpwork/wodobrow/poky/sysroots/x86_64-pokysdk-linux/usr/include/c++/7.3.0/x86_64-pokysdk-linux"
+-I $ENV{OECORE_NATIVE_SYSROOT}/usr/lib/x86_64-poky-linux/gcc/x86_64-poky-linux/7.3.0/include/
+--c_compiler x86_64-poky-linux-g++
+--system-config ${CMAKE_CURRENT_SOURCE_DIR}puma.config
+--real-instances
+--no_warn_macro
+--keep_woven
+-k
+--no_line
+-p${CMAKE_CURRENT_SOURCE_DIR})
 
 # Compile all cpp sources with ACXX
 message("Compiling all sources with AXCC")
