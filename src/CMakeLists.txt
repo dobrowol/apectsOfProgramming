@@ -1,7 +1,23 @@
 cmake_minimum_required(VERSION 3.8)
 ############## Aspect compiler ##############
 # Find and check ACXX compiler
-message("Main DUPA")
+include(FetchContent)
+ 
+set(BUILD_BOOST_ASIO ON CACHE BOOL "with asio") # pick options you need
+FetchContent_Declare(
+    rotor
+    GIT_REPOSITORY https://github.com/basiliscos/cpp-rotor.git
+    GIT_TAG v0.13
+)
+FetchContent_MakeAvailable(rotor)
+ 
+
+
+
+set(CMAKE_CXX_STANDARD 17)
+#set(CMAKE_CXX_STANDARD_REQUIRED ON)
+#set(CMAKE_CXX_EXTENSIONS OFF)
+#set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 if(NOT CMAKE_ACXX_COMPILER_WORKS)
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../buildsystem/acxx")
     enable_language(ACXX)
@@ -17,21 +33,15 @@ if(NOT CMAKE_ACXX_COMPILER_WORKS)
 
     MESSAGE(STATUS "ACXX Version: ${ACXX_VERSION}")
 endif()
-if(NOT CMAKE_ACXX_COMPILER_WORKS)
-  message(FATAL_ERROR "Required working ACXX compiler not found.")
-endif()
+#if(NOT CMAKE_ACXX_COMPILER_WORKS)
+#  message(FATAL_ERROR "Required working ACXX compiler not found.")
+#endif()
 
-project(DracoPlatformMade LANGUAGES ACXX CXX C)
+project(DracoPlatformMade LANGUAGES CXX C)
 #flags for cross-compiler 
 message("DUPA $ENV{OECORE_NATIVE_SYSROOTR}/usr/include/")
 
 ADD_DEFINITIONS_ACXX(
--I "$ENV{SDKTARGETSYSROOT}/usr/include/c++/7.3.0"
--I "$ENV{SDKTARGETSYSROOT}/usr/include/"
--I "/var/fpwork/wodobrow/poky/sysroots/x86_64-pokysdk-linux/usr/include/c++/7.3.0/x86_64-pokysdk-linux"
--I $ENV{OECORE_NATIVE_SYSROOT}/usr/lib/x86_64-poky-linux/gcc/x86_64-poky-linux/7.3.0/include/
---c_compiler x86_64-poky-linux-g++
---system-config ${CMAKE_CURRENT_SOURCE_DIR}puma.config
 --real-instances
 --no_warn_macro
 --keep_woven
@@ -51,11 +61,12 @@ set_source_files_properties(${SRC_CXX_FILES} PROPERTIES LANGUAGE ACXX)
 # We use the -a argument for this.
 foreach(AH_FILE ${SRC_AH_FILES})
     STRING(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/" "" SMALLFILE "${AH_FILE}")
-    ADD_DEFINITIONS_ACXX("-a" "${AH_FILE}")
+    ADD_DEFINITIONS_ACXX("-a" "${AH_FILE}"
+    -I "${rotor_SOURCE_DIR}/include")
     message("ah file ${SMALLFILE}")
 endforeach()
 # Target
-add_library(${PROJECT_NAME} SHARED
+add_executable(${PROJECT_NAME} 
     foo.cpp
 )
 
@@ -65,15 +76,18 @@ set_target_properties(${PROJECT_NAME} PROPERTIES SOVERSION "1.0")
 target_include_directories(${PROJECT_NAME} INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 )
+target_include_directories(${PROJECT_NAME} PUBLIC ${rotor_SOURCE_DIR}/include)
 
 # Dependencies
 
 ## General dependencies
 target_link_libraries(${PROJECT_NAME} PRIVATE
     -Wl,--no-undefined
+    rotor::asio
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
     -Wl,--no-undefined
+    rotor::asio
 )
 
